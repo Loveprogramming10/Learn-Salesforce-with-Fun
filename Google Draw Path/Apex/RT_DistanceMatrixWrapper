@@ -1,0 +1,31 @@
+/*Wrapper class to get response*/
+public class RT_DistanceMatrixWrapper {
+    public List<String> destination_addresses;
+    public List<String> origin_addresses;
+    public List<Rows> rows;
+    public  String status;
+    
+    public RT_DistanceMatrixWrapper() {
+        
+    } 
+    
+    public class Elements {
+        public Distance distance;
+        public Distance duration;
+        public String status;
+    }
+    
+    public class Distance {
+         public String text;
+         public Integer value;
+    }
+    
+    public class Rows {
+         public List<Elements> elements;
+    }
+    
+    
+    public static RT_DistanceMatrixWrapper parse(String json) {
+        return (RT_DistanceMatrixWrapper) System.JSON.deserialize(json, RT_DistanceMatrixWrapper.class);
+    }
+}
