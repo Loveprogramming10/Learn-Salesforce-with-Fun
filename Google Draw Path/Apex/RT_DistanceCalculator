@@ -1,3 +1,41 @@
 /*
 Apex class to calculate distance between 2 Address this class using in VF page to show path 
 */
+public class RT_CalculateDistance {
+    public String auth{get;set;}
+    public String start{get;set;}
+    public String destination{get;set;}
+    public String distance{get;set;}
+    public String timeToTravel{get;set;}
+    public boolean showDistance{get;set;}
+    
+    public RT_CalculateDistance(){
+        auth = Label.GoogleAuth; //Google Auth key
+        showDistance = false;
+        
+    }
+    public void getDistance(){
+        showDistance = true;
+		System.debug('start '+start+' '+destination);
+        String googleEndPoint = Label.GoogleEndpoind; //https://maps.googleapis.com/maps/api/distancematrix/json?
+        googleEndPoint += 'units=imperial'+'&origins='+start+'&destinations='+destination+'&key='+auth;
+        Http http = new Http();
+        HttpRequest req = new HttpRequest();
+        req.setMethod('GET');
+        req.setEndpoint(googleEndPoint);
+        HttpResponse rep = http.send(req);
+        System.debug('***Response**'+rep.getbody());
+        RT_DistanceMatrixWrapper GoogleDistanceMatrix = new RT_DistanceMatrixWrapper();
+        if(rep.getbody() != null ){
+            GoogleDistanceMatrix  = RT_DistanceMatrixWrapper.parse(rep.getbody());
+            if(GoogleDistanceMatrix.status == 'OK'){
+                System.debug('***GoogleDistanceMatrix**'+GoogleDistanceMatrix);
+                if( GoogleDistanceMatrix.rows.size()>0 && GoogleDistanceMatrix.rows[0].elements.size()>0){
+                    System.debug('DIST'+ GoogleDistanceMatrix.rows[0].elements[0].distance.text);
+                    distance = GoogleDistanceMatrix.rows[0].elements[0].distance.text;
+                    timeToTravel = GoogleDistanceMatrix.rows[0].elements[0].duration.text;
+                }
+            }
+        }
+    }
+}
