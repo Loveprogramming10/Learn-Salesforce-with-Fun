@@ -1,0 +1,101 @@
+<apex:page Controller="RT_CalculateDistance" sidebar="false" docType="html-5.0" >
+
+  <html>
+      <head>
+          <title>Page to calculate Diatance between 2 Address</title>
+          <style>
+              #map-layer {
+              max-width: 900px;
+              min-height: 550px;
+              }
+              .lbl-locations {
+              font-weight: bold;
+              margin-bottom: 15px;
+              }
+              .locations-option {
+              display:inline-block;
+              margin-right: 15px;
+              }
+              .btn-draw {
+              background: green;
+              color: #ffffff;
+              }
+          </style>
+          <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+          </head>
+          <body>
+              <apex:form>
+              <p>Draw Path between two Adress</p>
+              <div class="lbl-locations">Travel Mode</div>
+
+              <div>
+                  <input type="radio" name="travel_mode" class="travel_mode" value="WALKING"/> WALKING
+
+                  <input type="radio" name="travel_mode" class="travel_mode" value="DRIVING" /> DRIVING
+                  </div>
+                  <div>&nbsp;</div>
+                  <div class="lbl-locations">Way Points</div>
+                  <div>
+                      <div class="locations-option"><apex:input id="origin"   html-placeholder="Start from" value = "{!start}"/> </div>
+                      <br/>
+                          <br/>
+
+                          <div class="locations-option"><apex:input id="destination"  html-placeholder="Destination" value = "{!destination}"/> </div>
+                         <input type="button" id="drawPath" value="Search Direction" class="btn-draw" /> &nbsp;
+                         <input type="button" id="distance" value="Calculate Distance" class="btn-draw" />
+                        <apex:actionFunction action="{!getDistance}" name="calculate" rerender="pgblckID"/>
+
+              <br/>
+              <br/>
+              </div>
+          <apex:pageBlock id="pgblckID" >
+              <b> Distance  : </b><apex:outputText value="{!distance}"/><br/>
+                   <b> Time  : </b><apex:outputText value="{!timeToTravel}"/>
+                  </apex:pageBlock>
+              <div id="map-layer"></div>
+              </apex:form>
+          <script>
+              var map;
+          var waypoints;
+          function initMap() {
+              var mapLayer = document.getElementById("map-layer"); 
+              var centerCoordinates = new google.maps.LatLng(28.6139, 77.2090);
+              var defaultOptions = { center: centerCoordinates, zoom: 8 }
+              map = new google.maps.Map(mapLayer, defaultOptions);
+
+              var directionsService = new google.maps.DirectionsService;
+              var directionsDisplay = new google.maps.DirectionsRenderer;
+              directionsDisplay.setMap(map);
+
+              $("#drawPath").on("click",function() {
+                  var start =$('[id$=origin]').val();
+                  var end =  $('[id$=destination]').val();
+                  drawPath(directionsService, directionsDisplay,start,end);
+
+              });
+               $("#distance").on("click",function() {
+                   calculate();
+              });
+          }
+          function drawPath(directionsService, directionsDisplay,start,end) {
+              directionsService.route({
+                  origin: start,
+                  destination: end,
+                  optimizeWaypoints: true,
+                  travelMode: $("input[name='travel_mode']:checked"). val()
+              }, function(response, status) {
+                  console.log('response '+response);
+                  if (status === 'OK') {
+                      directionsDisplay.setDirections(response);
+                  } else {
+                      console.log('Problem in showing direction due to ' + status);
+                  }
+              });
+          }
+
+          </script>
+          <script src="https://maps.googleapis.com/maps/api/js?key={!$Label.GoogleAuth}&callback=initMap>&callback=initMap">
+          </script>
+      </body>
+  </html>
+</apex:page>
