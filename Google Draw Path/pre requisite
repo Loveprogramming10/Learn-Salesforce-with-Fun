@@ -1,0 +1,3 @@
+Go to setup in salesforce in Quick search for remote site setting and create remote site setting for https://maps.googleapis.com/maps/api/distancematrix/json?
+Salesforce setup in Quick search custom label create custom label "GoogleEndpoind" and add value https://maps.googleapis.com/maps/api/distancematrix/json?
+Create another custom label GoogleAuth add value Google auth key (Know how to generate Auth key for google here https://developers.google.com/maps/documentation/javascript/get-api-key)
