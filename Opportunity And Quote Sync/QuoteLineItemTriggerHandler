@@ -1,0 +1,78 @@
+//Apex class here 
+
+public class QuoteLineItemTriggerHandler {
+    @future
+    public static void syncQuotes(Set<Id> newLineItemsset){
+        // get quote ids we need to query for
+        Set<ID> quoteIds = new Set<ID>();
+        List<QuoteLineItem>newLineItems = [select id,QuoteId,OpportunityLineItemId,Custom_Discount__c from QuoteLineItem where Id in : newLineItemsset];
+        for (QuoteLineItem qli : newLineItems){
+            if (qli.QuoteId != null){
+                System.debug('oli id '+qli.OpportunityLineItemId);
+                quoteIds.add(qli.QuoteId);
+            }
+        }        
+        Map<ID,ID> mapQuoteLineItemSortOrder= new Map<ID,ID>(); 
+        String query='select id, name,(select id, OpportunityLineItemId from QuoteLineItems  ) from Quote where id in :quoteIds';
+        List<Quote> lstQuotesWithLineItems=Database.query(query);
+        for(Quote q: lstQuotesWithLineItems){
+            if(q.QuoteLineItems !=null){
+                for(QuoteLineitem qli : q.QuoteLineItems){
+                    if(qli.OpportunityLineItemId!=null){
+                        //map quote line item id with respective opportunity line item id
+                        mapQuoteLineItemSortOrder.put(qli.Id,ID.valueOF(qli.OpportunityLineItemId));
+                    }
+                }
+            }
+        }
+        
+        
+        Map<ID,OpportunityLineItem> mapOppLineItems=new Map<ID,OpportunityLineItem>();
+        for(OpportunityLineItem oli:[select id, Discount__c from OpportunityLineItem where Opportunity.SyncedQuoteId in :quoteIds]){
+            mapOppLineItems.put(oli.id,oli);
+        }
+        List<OpportunityLineItem> lstOppotunityToUpdate = new List<OpportunityLineItem>();
+        for (QuoteLineItem qli : newLineItems) {
+            OpportunityLineItem oli = mapOppLineItems.get(mapQuoteLineItemSortOrder.get(qli.Id));
+            System.debug('oli '+oli);
+            if (oli != null ) {
+                oli.Discount__c=qli.Custom_Discount__c;
+                //update more fields….
+                
+                lstOppotunityToUpdate.add(oli);
+            }
+        }
+        update lstOppotunityToUpdate;
+        System.debug('lstOppotunityToUpdate '+lstOppotunityToUpdate);
+    }
+    
+    //here your sync code
+    public static void startSyncQuotes(List<QuoteLineItem>QuoteLineLst,Boolean Isinsert){
+        Map<Id,QuoteLineItem>quoteWithOLIId = new  Map<Id,QuoteLineItem>();
+        LisT<OpportunityLineItem>OLIToUpdate = new List<OpportunityLineItem>();
+        
+        for(QuoteLineItem qli : QuoteLineLst){
+            quoteWithOLIId.put(qli.OpportunityLineItemId,qli);
+        }
+        if(Isinsert){
+            Map<Id,OpportunityLineItem>oppLineItems = new Map<Id,OpportunityLineItem>([select id,Discount__c from OpportunityLineItem Where Id in : quoteWithOLIId.keySet()]);
+            System.debug('Runnint insert.....'+oppLineItems);
+            for(QuoteLineItem qli : QuoteLineLst){
+                if(oppLineItems.containsKey(qli.OpportunityLineItemId)){
+                    //custom fields mapping here
+                    System.debug('oppLineItems.get(qli.OpportunityLineItemId).Discount '+oppLineItems.get(qli.OpportunityLineItemId).Discount__c);
+                    qli.Custom_Discount__c = oppLineItems.get(qli.OpportunityLineItemId).Discount__c;
+                }
+            }
+            System.debug('QuoteLineLst '+QuoteLineLst);
+        }else{
+            for(OpportunityLineItem OLI : [select id,Discount__c from OpportunityLineItem Where Id in : quoteWithOLIId.keySet()]){
+                //custom fields mapping here
+                OLI.Discount__c = quoteWithOLIId.get(OLI.Id).Custom_Discount__c;
+                OLIToUpdate.add(OLI);
+            }
+            database.update(OLIToUpdate);
+        }
+    }
+    
+}
