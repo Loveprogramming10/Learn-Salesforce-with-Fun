@@ -1,0 +1,28 @@
+trigger QuoteLineItemTrigger on QuoteLineItem (After Update,After Insert,Before Insert,before Update) {
+    /*   if(Trigger.IsAfter){
+Set<ID>quoteLineIdset = new Set<ID>();
+for(QuoteLineItem Qli : Trigger.new){
+quoteLineIdset.add(Qli.ID);
+}
+
+QuoteLineItemTriggerHandler.syncQuotes(quoteLineIdset);
+}
+*/
+    
+    if(Trigger.IsBefore && Trigger.IsInsert){
+        for(QuoteLineItem Qli : Trigger.new){
+            System.debug('BEFORE Qli'+Qli.Opportunity_Line_Item_ID__c);
+            System.debug('BEFORE Qli STD '+Qli.OpportunityLineItemId);
+        }
+        
+        QuoteLineItemTriggerHandler.startSyncQuotes(Trigger.new,Trigger.IsInsert);
+    }else if(Trigger.IsAfter && Trigger.IsUpdate){
+        for(QuoteLineItem Qli : Trigger.new){
+            System.debug('BEFORE Qli'+Qli.Opportunity_Line_Item_ID__c);
+            System.debug('BEFORE Qli STD '+Qli.OpportunityLineItemId);
+        }
+        QuoteLineItemTriggerHandler.startSyncQuotes(Trigger.new,Trigger.IsInsert);
+        
+    }
+    
+}
