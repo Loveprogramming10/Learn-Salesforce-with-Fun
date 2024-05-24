@@ -1,4 +1,9 @@
 Create Parameter__mdt
   Text field Value__c
-    UspsAddressValidationApiUrl	 record
-    UspsWebToolsUsername	record
+    UspsAddressValidationApiUrl record
+    UspsWebToolsUsername record
+
+Activate flow "Address Validation"
+Add Address Validation flow and from the property box set true checkbox to pass current record values
+
+
